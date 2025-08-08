@@ -30,12 +30,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                 })
             );
 
-            // Check if email is not verified
             if (!userData.data.email_verified_at) {
                 setVerificationModalOpen(true);
             }
         }
     }, [userData, token, dispatch]);
+    const currentPath = location.pathname;
+
+    const publicPaths = ['/', '/auth/verify-email'];
+    const isPublicRoute = publicPaths.some((path) => path === currentPath || currentPath.startsWith('/auth/verify-email'));
+
+    if (token && isPublicRoute) {
+        return <Navigate to="/dashboard" replace />;
+    }
 
     if (!token) {
         return <Navigate to="/" state={{ from: location }} replace />;

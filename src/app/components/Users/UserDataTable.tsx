@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { ActionIcon, Badge, Button, Paper, Text } from '@mantine/core';
-import { IconFilter, IconUserEdit, IconTrash, IconPlus } from '@tabler/icons-react';
+import { Badge, Button, Paper, Text } from '@mantine/core';
 import { useGetUsersListQuery, useCreateUserMutation, useUpdateUserMutation, useDeleteUserMutation } from '../../store/user/userApi';
 import { DataTable } from '../../shared/components/DataTable';
 import { User } from './Types';
@@ -9,16 +8,26 @@ import { UserForm } from './UserForms';
 import { useGetRolesListQuery } from '../../store/roles/roleApi';
 import { TableActions } from '../Roles/TableActions';
 import { toast } from 'react-toastify';
+import { ColumnVisibilityFilter } from '../../shared/components/ColumnVisibilityFilter';
 
 export default function UsersPage() {
     const { data: usersData, isLoading: isUsersLoading } = useGetUsersListQuery();
-
     const { data: rolesData } = useGetRolesListQuery();
+
     const [createUser] = useCreateUserMutation();
     const [updateUser] = useUpdateUserMutation();
     const [deleteUser] = useDeleteUserMutation();
+
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        actions: true,
+    });
 
     const roleOptions =
         rolesData?.data?.roles.map((role) => ({
@@ -50,7 +59,7 @@ export default function UsersPage() {
             }
             setIsModalOpen(false);
             setSelectedUser(null);
-        } catch (error) {
+        } catch {
             toast.error('Failed to save data');
         }
     };
@@ -61,11 +70,18 @@ export default function UsersPage() {
             toast.success('User deleted successfully');
         } catch (error) {
             toast.error('Failed to delete user');
-            console.log(error);
+            console.error(error);
         }
     };
 
-    const columns = [
+    const toggleColumnVisibility = (columnId: string) => {
+        setVisibleColumns((prev) => ({
+            ...prev,
+            [columnId]: !prev[columnId],
+        }));
+    };
+
+    const allColumns = [
         {
             id: 'id',
             header: 'Sr.',
@@ -104,20 +120,30 @@ export default function UsersPage() {
         },
     ];
 
+    const visibleTableColumns = allColumns.filter((col) => visibleColumns[col.id]);
+
     return (
         <>
             <Paper withBorder shadow="sm" radius="lg" style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ background: '#F0F8F6' }}>
                     <div className="flex justify-between items-center p-6">
                         <div className="bg-white p-2 rounded-lg">
-                            <IconFilter size={20} />
+                            <ColumnVisibilityFilter
+                                columns={allColumns.map((col) => ({
+                                    id: col.id,
+                                    header: col.header,
+                                    visible: visibleColumns[col.id],
+                                }))}
+                                onToggle={toggleColumnVisibility}
+                            />
                         </div>
                         <Button className="bg-primary transition" size="md" radius="md" onClick={handleAddClick}>
                             Add User
                         </Button>
                     </div>
                 </div>
-                <DataTable<User> data={usersData?.data?.users || []} columns={columns} loading={isUsersLoading} />
+
+                <DataTable<User> data={usersData?.data?.users || []} columns={visibleTableColumns} loading={isUsersLoading} />
             </Paper>
 
             <BaseModal

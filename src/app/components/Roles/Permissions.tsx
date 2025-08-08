@@ -29,7 +29,7 @@ export default function PermissionsModal({ permissions, trigger }: PermissionsMo
             <BaseModal modalTitle="Permissions" opened={isOpen} onClose={() => setIsOpen(false)} size="lg" trigger={() => null}>
                 <Stack className="py-4 px-2">
                     {Object?.entries(groupedPermissions)?.map(([category, { verbs }]) => (
-                        <Paper key={category} withBorder shadow="sm" p="md" className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:justify-between sm:items-center">
+                        <Paper key={category} withBorder shadow="sm" className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4">
                             <div>
                                 <Text className="font-normal">{category} Management</Text>
                                 <Text size="sm" color="dimmed">

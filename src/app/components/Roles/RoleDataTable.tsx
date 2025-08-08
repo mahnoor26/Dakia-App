@@ -8,6 +8,7 @@ import { Role } from './Types';
 import { RoleModal } from './RoleModal';
 import { TableActions } from './TableActions';
 import { toast } from 'react-toastify';
+import { ColumnVisibilityFilter } from '../../shared/components/ColumnVisibilityFilter';
 
 export default function RolesData() {
     const { data, isLoading, isError } = useGetRolesListQuery();
@@ -17,7 +18,19 @@ export default function RolesData() {
     const [roleToEdit, setRoleToEdit] = useState<any>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+        id: true,
+        name: true,
+        permissions: true,
+        actions: true,
+    });
 
+    const toggleColumnVisibility = (columnId: string) => {
+        setVisibleColumns((prev) => ({
+            ...prev,
+            [columnId]: !prev[columnId],
+        }));
+    };
     const handleAddRole = () => setIsAddModalOpen(true);
     const handleEditRole = (role: Role) => setRoleToEdit(role);
     const handleDeleteRole = async (id: number | undefined) => {
@@ -54,7 +67,7 @@ export default function RolesData() {
         setIsAddModalOpen(false);
     };
 
-    const columns = [
+    const allColumns = [
         {
             id: 'id',
             header: 'Sr.',
@@ -78,7 +91,7 @@ export default function RolesData() {
                     permissions={
                         role?.permissions?.map((p: any) => ({
                             id: p.id,
-                            name: p?.name || `Permission ${p.id}`, // Fallback name
+                            name: p?.name || `Permission ${p.id}`,
                         })) || []
                     }
                     trigger={(open) => (
@@ -105,6 +118,8 @@ export default function RolesData() {
         },
     ];
 
+    const visibleTableColumns = allColumns.filter((col) => visibleColumns[col.id]);
+
     return (
         <>
             <Paper withBorder shadow="sm" radius="lg" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -119,7 +134,14 @@ export default function RolesData() {
                 <div style={{ background: '#F0F8F6' }}>
                     <div className="flex justify-between items-center p-6">
                         <div className="bg-white p-2 rounded-lg">
-                            <IconFilter size={20} />
+                            <ColumnVisibilityFilter
+                                columns={allColumns.map((col) => ({
+                                    id: col.id,
+                                    header: col.header,
+                                    visible: visibleColumns[col.id],
+                                }))}
+                                onToggle={toggleColumnVisibility}
+                            />
                         </div>
                         <Button className="bg-primary transition" size="md" radius="md" onClick={handleAddRole} loading={isCreating}>
                             Add Role
@@ -127,7 +149,7 @@ export default function RolesData() {
                     </div>
                 </div>
 
-                <DataTable<Role> data={data?.data?.roles || []} columns={columns} loading={isLoading} />
+                <DataTable<Role> data={data?.data?.roles || []} columns={visibleTableColumns} loading={isLoading} />
             </Paper>
 
             <RoleModal mode="add" opened={isAddModalOpen} onClose={handleCloseModal} onSubmit={handleSubmit} isSubmitting={isCreating} error={error} />
