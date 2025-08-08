@@ -15,3 +15,13 @@ export interface BaseModalProps extends Omit<ModalProps, 'title'> {
     opened: boolean;
     onClose: () => void;
 }
+
+
+export interface ColumnVisibilityFilterProps {
+    columns: {
+        id: string;
+        header: string;
+        visible: boolean;
+    }[];
+    onToggle: (columnId: string) => void;
+}

@@ -5,6 +5,7 @@ import UserCrud from '../pages/features/UserManagement/UserCrud';
 import Dashboard from '../pages/Dashboard';
 import ProtectedRoute from '../shared/components/ProtectedRoute';
 import { ReactNode } from 'react';
+import PublicRoute from '../shared/components/PublicRoute';
 
 type LayoutType = 'default' | 'dashboard';
 
@@ -17,7 +18,11 @@ interface AppRoute {
 export const routes: AppRoute[] = [
     {
         path: '/',
-        element: <AuthPage />,
+        element: (
+            <PublicRoute>
+                <AuthPage />
+            </PublicRoute>
+        ),
         layout: 'default',
     },
     {
